@@ -22,6 +22,7 @@ const createChat = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     try {
         const result = yield newChat.save();
         res.status(200).json(result);
+        console.log(result);
     }
     catch (error) {
         console.error(error);
