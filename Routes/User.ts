@@ -8,7 +8,7 @@ import User from "../Models/User";
 
 router.post("/register", async (req: Request, res: Response) => {
   try {
-    const { email, nickname, password } = req.body;
+    const { email, username, password } = req.body;
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!emailRegex.test(email)) {
@@ -17,8 +17,8 @@ router.post("/register", async (req: Request, res: Response) => {
 
     const emailAlreadyExists = await User.findOne({ email: email });
 
-    if (!email || !nickname || !password) {
-      return res.status(406).send({ message: "something is missing !" });
+    if (!email || !username || !password) {
+      return res.status(406).send({ message: "Something is missing !" });
     } else if (emailAlreadyExists) {
       return res
         .status(406)
@@ -32,7 +32,7 @@ router.post("/register", async (req: Request, res: Response) => {
 
       const newUser = new User({
         email: email,
-        nickname: nickname,
+        username: username,
         token: token,
         hash: hash,
         salt: salt,
@@ -46,6 +46,31 @@ router.post("/register", async (req: Request, res: Response) => {
   } catch (error) {
     console.log(error);
     res.status(406).json({ message: error });
+  }
+});
+
+router.post("/login", async (req: Request, res: Response) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ email: email });
+    if (!user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    const newHash = SHA256(user.salt + password).toString(BASE64);
+    if (newHash !== user.hash) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    res.status(200).json({
+      _id: user._id,
+      token: user.token,
+      username: user.username,
+      email: user.email,
+    });
+  } catch (error: any) {
+    res.status(400).json({ message: error });
+    console.log(error.message);
   }
 });
 

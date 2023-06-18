@@ -20,14 +20,14 @@ const uid2 = require("uid2");
 const User_1 = __importDefault(require("../Models/User"));
 router.post("/register", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { email, nickname, password } = req.body;
+        const { email, username, password } = req.body;
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
             return res.status(406).send({ message: "Invalid e-mail address" });
         }
         const emailAlreadyExists = yield User_1.default.findOne({ email: email });
-        if (!email || !nickname || !password) {
-            return res.status(406).send({ message: "something is missing !" });
+        if (!email || !username || !password) {
+            return res.status(406).send({ message: "Something is missing !" });
         }
         else if (emailAlreadyExists) {
             return res
@@ -43,19 +43,42 @@ router.post("/register", (req, res) => __awaiter(void 0, void 0, void 0, functio
             const token = uid2(64);
             const newUser = new User_1.default({
                 email: email,
-                nickname: nickname,
+                username: username,
                 token: token,
                 hash: hash,
                 salt: salt,
             });
             yield newUser.save();
-            console.log(newUser);
+            console.log("new User --->", newUser);
             res.status(200).json(newUser);
         }
     }
     catch (error) {
         console.log(error);
         res.status(406).json({ message: error });
+    }
+}));
+router.post("/login", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { email, password } = req.body;
+        const user = yield User_1.default.findOne({ email: email });
+        if (!user) {
+            return res.status(401).json({ message: "Unauthorized" });
+        }
+        const newHash = SHA256(user.salt + password).toString(BASE64);
+        if (newHash !== user.hash) {
+            return res.status(401).json({ message: "Unauthorized" });
+        }
+        res.status(200).json({
+            _id: user._id,
+            token: user.token,
+            username: user.username,
+            email: user.email,
+        });
+    }
+    catch (error) {
+        res.status(400).json({ message: error });
+        console.log(error.message);
     }
 }));
 module.exports = router;
