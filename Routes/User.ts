@@ -55,11 +55,11 @@ router.post("/login", async (req: Request, res: Response) => {
 
     const user = await User.findOne({ email: email });
     if (!user) {
-      return res.status(401).json({ message: "Unauthorized" });
+      return res.status(401).json({ message: "Something went wrong" });
     }
     const newHash = SHA256(user.salt + password).toString(BASE64);
     if (newHash !== user.hash) {
-      return res.status(401).json({ message: "Unauthorized" });
+      return res.status(401).json({ message: "Something went wrong" });
     }
 
     res.status(200).json({

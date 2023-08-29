@@ -20,6 +20,10 @@ app.get("/", (req: Request, res: Response) => {
   res.send("Chat App");
 });
 
+app.all("*", (req: Request, res: Response) => {
+  return res.status(404).json("Not Found");
+});
+
 app.listen(port, () => {
   console.log(`[server]: Server is now running at 🚀 http://localhost:${port}`);
 });
